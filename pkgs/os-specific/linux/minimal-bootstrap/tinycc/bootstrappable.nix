@@ -29,13 +29,18 @@ let
     mkdir -p ''${out}
     cd ''${out}
     untar --file ''${NIX_BUILD_TOP}/tinycc.tar
+
+    # Patch
+    cd tinycc-${rev}
+    # Static link by default
+    replace --file libtcc.c --output libtcc.c --match-on "s->ms_extensions = 1;" --replace-with "s->ms_extensions = 1; s->static_link = 1;"
   '') + "/tinycc-${rev}";
 
   meta = with lib; {
     description = "Tiny C Compiler's bootstrappable fork";
     homepage = "https://gitlab.com/janneke/tinycc";
     license = licenses.lgpl21Only;
-    maintainers = with maintainers; [ emilytrau ];
+    maintainers = teams.minimal-bootstrap.members;
     platforms = [ "i686-linux" ];
   };
 

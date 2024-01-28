@@ -5,26 +5,30 @@
 , git
 , python3
 , makeWrapper
+, writeScriptBin
 , darwin
+, which
 }:
 
 rustPlatform.buildRustPackage rec {
   pname = "pylyzer";
-  version = "0.0.27";
+  version = "0.0.51";
 
   src = fetchFromGitHub {
     owner = "mtshiba";
     repo = "pylyzer";
-    rev = "v${version}";
-    hash = "sha256-RtfRYycHSDaOE71tTtChdMJKyRyTqracHw4p94heFwU=";
+    rev = "refs/tags/v${version}";
+    hash = "sha256-TKAmIy5dP2m1iokxSqfxTj79UDkW00+se/NDGS3euwA=";
   };
 
-  cargoHash = "sha256-Ggvcg96j9LlhDy0BMJzNDXE1Qtf04svt2ezXmkq3aUA=";
+  cargoHash = "sha256-035ueF42g6By+6TOGEultc8n350g3mRT00raQgWIcUM=";
 
   nativeBuildInputs = [
     git
     python3
     makeWrapper
+  ] ++ lib.optionals stdenv.isDarwin [
+    (writeScriptBin "diskutil" "")
   ];
 
   buildInputs = [
@@ -41,6 +45,10 @@ rustPlatform.buildRustPackage rec {
     mkdir -p $out/lib
     cp -r $HOME/.erg/ $out/lib/erg
   '';
+
+  nativeCheckInputs = [
+    which
+  ];
 
   checkFlags = [
     # this test causes stack overflow

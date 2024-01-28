@@ -31,7 +31,7 @@ in
       type = lib.types.bool;
       default = false;
       description = lib.mdDoc ''
-        Wether to add an entry to `/etc/hosts` for the configured nextcloud domain to point to `localhost` and add `localhost `to nextcloud's `trusted_proxies` config option.
+        Whether to add an entry to `/etc/hosts` for the configured nextcloud domain to point to `localhost` and add `localhost `to nextcloud's `trusted_proxies` config option.
 
         This is useful when nextcloud's domain is not a static IP address and when the reverse proxy cannot be bypassed because the backend connection is done via unix socket.
       '';
@@ -116,7 +116,7 @@ in
       }
 
       (lib.mkIf cfg.bendDomainToLocalhost {
-        nextcloud.extraOptions.trusted_proxies = [ "127.0.0.1" "::1" ];
+        nextcloud.settings.trusted_proxies = [ "127.0.0.1" "::1" ];
       })
     ];
   };

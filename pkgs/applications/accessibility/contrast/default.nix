@@ -19,7 +19,7 @@
 
 stdenv.mkDerivation rec {
   pname = "contrast";
-  version = "0.0.7";
+  version = "0.0.10";
 
   src = fetchFromGitLab {
     domain = "gitlab.gnome.org";
@@ -27,13 +27,13 @@ stdenv.mkDerivation rec {
     owner = "design";
     repo = "contrast";
     rev = version;
-    hash = "sha256-waoXv8dzqynkpfEPZSgZnS6fyo9+9+3Q2oy2fMtEsoE=";
+    hash = "sha256-Y0CynBvnCOBesONpxUicR7PgMJgmM0ZQX/uOwIppj7w=";
   };
 
   cargoDeps = rustPlatform.fetchCargoTarball {
     inherit src;
     name = "${pname}-${version}";
-    hash = "sha256-94QwPSiGjjPuskg5w6QfM5FuChFno7f9dh0Xr2wWKCI=";
+    hash = "sha256-BdwY2YDJyDApGgE0Whz3xRU/0gRbkwbKUvPbWEObXE8=";
   };
 
   nativeBuildInputs = [
@@ -60,9 +60,10 @@ stdenv.mkDerivation rec {
     description = "Checks whether the contrast between two colors meet the WCAG requirements";
     homepage = "https://gitlab.gnome.org/World/design/contrast";
     license = licenses.gpl3Plus;
-    maintainers = with maintainers; [ jtojnar ];
+    maintainers = with maintainers; [ ];
     platforms = platforms.unix;
     # never built on aarch64-darwin, x86_64-darwin since first introduction in nixpkgs
     broken = stdenv.isDarwin;
+    mainProgram = "contrast";
   };
 }

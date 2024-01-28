@@ -3,16 +3,9 @@
 , callPackage
 , kaem
 , mescc-tools-extra
+, checkMeta
 }:
-
-let
-  checkMeta = callPackage ../../../stdenv/generic/check-meta.nix { };
-in
 rec {
-  fetchurl = import ../../../build-support/fetchurl/boot.nix {
-    inherit (buildPlatform) system;
-  };
-
   derivationWithMeta = attrs:
     let
       passthru = attrs.passthru or {};
@@ -36,11 +29,9 @@ rec {
     , text
     , executable ? false # run chmod +x ?
     , destination ? ""   # relative path appended to $out eg "/bin/foo"
-    , allowSubstitutes ? false
-    , preferLocalBuild ? true
     }:
     derivationWithMeta {
-      inherit name text allowSubstitutes preferLocalBuild;
+      inherit name text;
       passAsFile = [ "text" ];
 
       builder = "${kaem}/bin/kaem";

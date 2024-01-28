@@ -53,7 +53,7 @@ stdenv.mkDerivation rec {
     wrapGAppsNoGuiHook
     python3.pkgs.wrapPython
     # checkInput but cheked for during the configuring
-    (python3.pythonForBuild.withPackages (ps: with ps; [
+    (python3.pythonOnBuildForHost.withPackages (ps: with ps; [
       pygobject3
       dbus-python
       python-dbusmock
@@ -128,6 +128,6 @@ stdenv.mkDerivation rec {
     description = "Makes user-selected power profiles handling available over D-Bus";
     platforms = platforms.linux;
     license = licenses.gpl3Plus;
-    maintainers = with maintainers; [ jtojnar mvnetbiz ];
+    maintainers = with maintainers; [ mvnetbiz ];
   };
 }

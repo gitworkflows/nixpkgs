@@ -2,13 +2,13 @@
 
 stdenv.mkDerivation rec {
   pname = "pacparser";
-  version = "1.4.1";
+  version = "1.4.3";
 
   src = fetchFromGitHub {
     owner = "manugarg";
     repo = pname;
     rev = "v${version}";
-    sha256 = "sha256-tEbkMRHCdiKXpz9Ksg2LEzfOVhF8xbUHWMeExPMlGVM=";
+    sha256 = "sha256-qIfzAQ/dJgOZJajNU3XyFudSxu2w4JC0ffHosHXje1o=";
   };
 
   makeFlags = [ "NO_INTERNET=1" ];

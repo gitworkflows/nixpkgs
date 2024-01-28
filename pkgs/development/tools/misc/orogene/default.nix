@@ -9,17 +9,17 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "orogene";
-  version = "0.3.25";
+  version = "0.3.34";
 
   src = fetchFromGitHub {
     owner = "orogene";
     repo = "orogene";
     rev = "v${version}";
-    hash = "sha256-QQhlkTg14nPYQvKYoZf07PjknTZZRUTzBzNFJeovny8=";
+    hash = "sha256-GMWrlvZZ2xlcvcRG3u8jS8KiewHpyX0brNe4pmCpHbM=";
     fetchSubmodules = true;
   };
 
-  cargoHash = "sha256-uxW196f/PEVxGHmZ7hUyvaIz1OD1XmyVEuwk8Hdvsvs=";
+  cargoHash = "sha256-I9uh8jV1hH5R/UHM3mz2/ZA7QY4O9gW5qXlVSfao0ZM=";
 
   nativeBuildInputs = [
     pkg-config
@@ -28,7 +28,7 @@ rustPlatform.buildRustPackage rec {
   buildInputs = [
     openssl
   ] ++ lib.optionals stdenv.isDarwin [
-    darwin.apple_sdk.frameworks.Security
+    darwin.apple_sdk.frameworks.SystemConfiguration
   ];
 
   preCheck = ''

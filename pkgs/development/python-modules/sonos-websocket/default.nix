@@ -9,7 +9,7 @@
 
 buildPythonPackage rec {
   pname = "sonos-websocket";
-  version = "0.1.1";
+  version = "0.1.3";
   format = "pyproject";
 
   disabled = pythonOlder "3.7";
@@ -18,7 +18,7 @@ buildPythonPackage rec {
     owner = "jjlawren";
     repo = "sonos-websocket";
     rev = "refs/tags/${version}";
-    hash = "sha256-8fHHaHvJKZOnzSaclt+TSQgcP2O6fmjU3+cF1nJpjOI=";
+    hash = "sha256-1sgYLwIW7VWnHJGsfIQ95AGZ5j/DPMKQr5n7F+/MsuY=";
   };
 
   nativeBuildInputs = [

@@ -1,9 +1,15 @@
-{ lib, buildGoModule, fetchFromGitHub, fetchzip, installShellFiles, stdenv }:
+{ lib
+, stdenv
+, buildGoModule
+, fetchFromGitHub
+, fetchzip
+, installShellFiles
+}:
 
 let
-  version = "2.0.0-rc.2";
-  sha256 = "0b7ls2amzmfjy6hw6kwcmhjj2wdara4igwk2wby6ah2yj5nipb45";
-  manifestsSha256 = "1xj0g65czl20j8axi6n07sm9ijzmr7vhczfdpx4xqx6m3bl9vqxs";
+  version = "2.2.2";
+  sha256 = "0d4sf1b0dddcarngr4dllhbbyjajpf1byv9cf7nx9040i80vk56p";
+  manifestsSha256 = "1ixdzgaw3mrkwbazfbx0vc04z4rsyyyj5dsck15dv5kkvhi304lg";
 
   manifests = fetchzip {
     url =
@@ -23,7 +29,7 @@ in buildGoModule rec {
     inherit sha256;
   };
 
-  vendorSha256 = "sha256-HWKpaMHBX8wvG2aDX/U9lI9KNMcbBNxxG3yigYa+VX8=";
+  vendorHash = "sha256-jbhxSeLjgNmj2wCZao4DkQ57GvpYKlUyy7xdNKN1nWc=";
 
   postUnpack = ''
     cp -r ${manifests} source/cmd/flux/manifests
@@ -65,6 +71,7 @@ in buildGoModule rec {
       updates to configuration when there is new code to deploy.
     '';
     homepage = "https://fluxcd.io";
+    downloadPage = "https://github.com/fluxcd/flux2/releases/tag/v${version}";
     license = licenses.asl20;
     maintainers = with maintainers; [ bryanasdev000 jlesquembre ];
     mainProgram = "flux";

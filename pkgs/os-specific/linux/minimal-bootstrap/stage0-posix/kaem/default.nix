@@ -6,6 +6,7 @@
 , mescc-tools
 , mescc-tools-extra
 , version
+, platforms
 }:
 
 # Once mescc-tools-extra is available we can install kaem at /bin/kaem
@@ -45,7 +46,7 @@ derivationWithMeta {
     description = "Minimal build tool for running scripts on systems that lack any shell";
     homepage = "https://github.com/oriansj/mescc-tools";
     license = licenses.gpl3Plus;
-    maintainers = with maintainers; [ emilytrau ];
-    platforms = [ "i686-linux" ];
+    maintainers = teams.minimal-bootstrap.members;
+    inherit platforms;
   };
 }

@@ -1,28 +1,86 @@
-{ lib, buildGoModule, fetchurl, fetchFromGitHub, nixosTests, tzdata, wire }:
+{ lib, stdenv, buildGoModule, fetchFromGitHub, removeReferencesTo
+, tzdata, wire
+, yarn, nodejs, cacert
+, jq, moreutils
+, nix-update-script, nixosTests
+}:
 
+let
+  # We need dev dependencies to run webpack, but patch away
+  # `cypress` (and @grafana/e2e which has a direct dependency on cypress).
+  # This attempts to download random blobs from the Internet in
+  # postInstall. Also, it's just a testing framework, so not worth the hassle.
+  patchAwayGrafanaE2E = ''
+    find . -name package.json | while IFS=$'\n' read -r pkg_json; do
+      <"$pkg_json" jq '. + {
+        "devDependencies": .devDependencies | del(."@grafana/e2e") | del(.cypress)
+      }' | sponge "$pkg_json"
+    done
+    rm -r packages/grafana-e2e
+  '';
+
+  # Injects a `t.Skip()` into a given test since
+  # there's apparently no other way to skip tests here.
+  skipTest = lineOffset: testCase: file:
+    let
+      jumpAndAppend = lib.concatStringsSep ";" (lib.replicate (lineOffset - 1) "n" ++ [ "a" ]);
+    in ''
+      sed -i -e '/${testCase}/{
+      ${jumpAndAppend} t.Skip();
+      }' ${file}
+    '';
+in
 buildGoModule rec {
   pname = "grafana";
-  version = "9.5.2";
+  version = "10.3.1";
 
-  excludedPackages = [ "alert_webhook_listener" "clean-swagger" "release_publisher" "slow_proxy" "slow_proxy_mac" "macaron" "devenv" ];
+  excludedPackages = [ "alert_webhook_listener" "clean-swagger" "release_publisher" "slow_proxy" "slow_proxy_mac" "macaron" "devenv" "modowners" ];
 
   src = fetchFromGitHub {
-    rev = "v${version}";
     owner = "grafana";
     repo = "grafana";
-    hash = "sha256-4Gt5VwKD6YkxNSKxvfGjakXF4jF9aoaFZ+dXy/GsDaU=";
+    rev = "v${version}";
+    hash = "sha256-UPIq7BWTlT0omt/SM5+vkfOHvsdcx/ikkjcW9X8pcw0=";
   };
 
-  srcStatic = fetchurl {
-    url = "https://dl.grafana.com/oss/release/grafana-${version}.linux-amd64.tar.gz";
-    hash = "sha256-xY600pasxP/+XbbbX4U3zp8R837/46+uJ9zQWva5Or8=";
+  offlineCache = stdenv.mkDerivation {
+    name = "${pname}-${version}-yarn-offline-cache";
+    inherit src;
+    nativeBuildInputs = [
+      yarn nodejs cacert
+      jq moreutils
+    ];
+    postPatch = ''
+      ${patchAwayGrafanaE2E}
+    '';
+    buildPhase = ''
+      runHook preBuild
+      export HOME="$(mktemp -d)"
+      yarn config set enableTelemetry 0
+      yarn config set cacheFolder $out
+      yarn config set --json supportedArchitectures.os '[ "linux" ]'
+      yarn config set --json supportedArchitectures.cpu '["arm", "arm64", "ia32", "x64"]'
+      yarn
+      runHook postBuild
+    '';
+    dontConfigure = true;
+    dontInstall = true;
+    dontFixup = true;
+    outputHashMode = "recursive";
+    outputHash = "sha256-70eMa8E483f/Bz7iy+4Seap1EfIdjD5krnt6W9CUows=";
   };
 
-  vendorHash = "sha256-E9Qdsk691+laPrQQnYBIwxAIbXh7wxB0G2e/Vp+4x98=";
+  disallowedRequisites = [ offlineCache ];
 
-  nativeBuildInputs = [ wire ];
+  vendorHash = "sha256-Gf2A22d7/8xU/ld7kveqGonVKGFCArGNansPRGhfyXM=";
 
-  preBuild = ''
+  nativeBuildInputs = [ wire yarn jq moreutils removeReferencesTo ];
+
+  postPatch = ''
+    ${patchAwayGrafanaE2E}
+  '';
+
+  postConfigure = ''
     # Generate DI code that's required to compile the package.
     # From https://github.com/grafana/grafana/blob/v8.2.3/Makefile#L33-L35
     wire gen -tags oss ./pkg/server
@@ -42,15 +100,36 @@ buildGoModule rec {
     # [...]
     # grafana> t=2021-12-02T14:24:58+0000 lvl=dbug msg="Failed to get latest.json repo from github.com" logger=update.checker error="Get \"https://raw.githubusercontent.com/grafana/grafana/main/latest.json\": dial tcp: lookup raw.githubusercontent.com on [::1]:53: read udp [::1]:36391->[::1]:53: read: connection refused"
     # grafana> t=2021-12-02T14:24:58+0000 lvl=dbug msg="Failed to get plugins repo from grafana.com" logger=plugin.manager error="Get \"https://grafana.com/api/plugins/versioncheck?slugIn=&grafanaVersion=\": dial tcp: lookup grafana.com on [::1]:53: read udp [::1]:41796->[::1]:53: read: connection refused"
-    sed -i -e '/Request is not forbidden if from an admin/a t.Skip();' pkg/tests/api/plugins/api_plugins_test.go
+    ${skipTest 1 "Request is not forbidden if from an admin" "pkg/tests/api/plugins/api_plugins_test.go"}
 
     # Skip a flaky test (https://github.com/NixOS/nixpkgs/pull/126928#issuecomment-861424128)
-    sed -i -e '/it should change folder successfully and return correct result/{N;s/$/\nt.Skip();/}'\
-      pkg/services/libraryelements/libraryelements_patch_test.go
+    ${skipTest 2 "it should change folder successfully and return correct result" "pkg/services/libraryelements/libraryelements_patch_test.go"}
 
+    # Skip flaky tests (https://logs.ofborg.org/?key=nixos/nixpkgs.263185&attempt_id=5b056a17-67a7-4b74-9dc7-888eb1d6c2dd)
+    ${skipTest 1 "TestIntegrationRulerAccess" "pkg/tests/api/alerting/api_alertmanager_test.go"}
+    ${skipTest 1 "TestIntegrationRulePause" "pkg/tests/api/alerting/api_ruler_test.go"}
 
     # main module (github.com/grafana/grafana) does not contain package github.com/grafana/grafana/scripts/go
     rm -r scripts/go
+
+    # Requires making API calls against storage.googleapis.com:
+    #
+    # [...]
+    # grafana> 2023/08/24 08:30:23 failed to copy objects, err: Post "https://storage.googleapis.com/upload/storage/v1/b/grafana-testing-repo/o?alt=json&name=test-path%2Fbuild%2FTestCopyLocalDir2194093976%2F001%2Ffile2.txt&prettyPrint=false&projection=full&uploadType=multipart": dial tcp: lookup storage.googleapis.com on [::1]:53: read udp [::1]:36436->[::1]:53: read: connection refused
+    # grafana> panic: test timed out after 10m0s
+    rm pkg/build/gcloud/storage/gsutil_test.go
+
+    # Setup node_modules
+    export HOME="$(mktemp -d)"
+    yarn config set enableTelemetry 0
+    yarn config set cacheFolder $offlineCache
+    yarn --immutable-cache
+  '';
+
+  postBuild = ''
+    # After having built all the Go code, run the JS builders now.
+    yarn run build
+    yarn run plugins:build-bundled
   '';
 
   ldflags = [
@@ -68,16 +147,19 @@ buildGoModule rec {
   '';
 
   postInstall = ''
-    tar -xvf $srcStatic
     mkdir -p $out/share/grafana
-    mv grafana-*/{public,conf,tools} $out/share/grafana/
+    cp -r public conf $out/share/grafana/
+  '';
 
-    cp ./conf/defaults.ini $out/share/grafana/conf/
+  postFixup = ''
+    while read line; do
+      remove-references-to -t $offlineCache "$line"
+    done < <(find $out -type f -name '*.js.map' -or -name '*.js')
   '';
 
   passthru = {
     tests = { inherit (nixosTests) grafana; };
-    updateScript = ./update.sh;
+    updateScript = nix-update-script { };
   };
 
   meta = with lib; {

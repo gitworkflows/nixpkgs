@@ -8,19 +8,22 @@
 let
   python = python3.override {
     packageOverrides = self: super: {
+      torch = super.torch-bin;
+      torchvision = super.torchvision-bin;
+      tensorflow = super.tensorflow-bin;
     };
   };
 in
 python.pkgs.buildPythonApplication rec {
   pname = "tts";
-  version = "0.13.3";
-  format = "pyproject";
+  version = "0.20.2";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "coqui-ai";
     repo = "TTS";
     rev = "refs/tags/v${version}";
-    hash = "sha256-cu714/XtVqqlHN2CmUObcNFG6Vdi9VqC4at/HB8euDs=";
+    hash = "sha256-1nlSf15IEX1qKfDtR6+jQqskjxIuzaIWatkj9Z1fh8Y=";
   };
 
   postPatch = let
@@ -39,16 +42,24 @@ python.pkgs.buildPythonApplication rec {
   in ''
     sed -r -i \
       ${lib.concatStringsSep "\n" (map (package:
-        ''-e 's/${package}.*[<>=]+.*/${package}/g' \''
+        ''-e 's/${package}\s*[<>=]+.+/${package}/g' \''
       ) relaxedConstraints)}
     requirements.txt
+
+    sed -r -i \
+      ${lib.concatStringsSep "\n" (map (package:
+        ''-e 's/${package}\s*[<>=]+[^"]+/${package}/g' \''
+      ) relaxedConstraints)}
+    pyproject.toml
     # only used for notebooks and visualization
     sed -r -i -e '/umap-learn/d' requirements.txt
   '';
 
   nativeBuildInputs = with python.pkgs; [
     cython
+    numpy
     packaging
+    setuptools
   ];
 
   propagatedBuildInputs = with python.pkgs; [
@@ -57,6 +68,8 @@ python.pkgs.buildPythonApplication rec {
     bnnumerizer
     bnunicodenormalizer
     coqpit
+    einops
+    encodec
     flask
     fsspec
     g2pkk
@@ -65,6 +78,7 @@ python.pkgs.buildPythonApplication rec {
     inflect
     jamo
     jieba
+    k-diffusion
     librosa
     matplotlib
     mecab-python3
@@ -81,6 +95,7 @@ python.pkgs.buildPythonApplication rec {
     torchaudio-bin
     tqdm
     trainer
+    transformers
     unidic-lite
     webrtcvad
   ];
@@ -90,7 +105,7 @@ python.pkgs.buildPythonApplication rec {
     # cython modules are not installed for some reasons
     (
       cd TTS/tts/utils/monotonic_align
-      ${python.pythonForBuild.interpreter} setup.py install --prefix=$out
+      ${python.pythonOnBuildForHost.interpreter} setup.py install --prefix=$out
     )
   '';
 

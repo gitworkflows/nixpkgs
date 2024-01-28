@@ -9,16 +9,14 @@ in {
   nodes.machine = {
     services.syncthing = {
       enable = true;
-      settings = {
-        devices.testDevice = {
-          id = testId;
-        };
-        folders.testFolder = {
-          path = "/tmp/test";
-          devices = [ "testDevice" ];
-        };
-        gui.user = "guiUser";
+      settings.devices.testDevice = {
+        id = testId;
       };
+      settings.folders.testFolder = {
+        path = "/tmp/test";
+        devices = [ "testDevice" ];
+      };
+      settings.gui.user = "guiUser";
     };
   };
 

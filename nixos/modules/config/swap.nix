@@ -252,8 +252,14 @@ in
           let realDevice' = escapeSystemdPath sw.realDevice;
           in nameValuePair "mkswap-${sw.deviceName}"
           { description = "Initialisation of swap device ${sw.device}";
+            # The mkswap service fails for file-backed swap devices if the
+            # loop module has not been loaded before the service runs.
+            # We add an ordering constraint to run after systemd-modules-load to
+            # avoid this race condition.
+            after = [ "systemd-modules-load.service" ];
             wantedBy = [ "${realDevice'}.swap" ];
-            before = [ "${realDevice'}.swap" ];
+            before = [ "${realDevice'}.swap" "shutdown.target"];
+            conflicts = [ "shutdown.target" ];
             path = [ pkgs.util-linux pkgs.e2fsprogs ]
               ++ optional sw.randomEncryption.enable pkgs.cryptsetup;
 
@@ -275,12 +281,11 @@ in
                 ''}
                 ${optionalString sw.randomEncryption.enable ''
                   cryptsetup plainOpen -c ${sw.randomEncryption.cipher} -d ${sw.randomEncryption.source} \
-                '' + concatMapStrings (arg: arg + " \\\n") (flatten [
-                  (optional (sw.randomEncryption.sectorSize != null) "--sector-size=${toString sw.randomEncryption.sectorSize}")
-                  (optional (sw.randomEncryption.keySize != null) "--key-size=${toString sw.randomEncryption.keySize}")
-                  (optional sw.randomEncryption.allowDiscards "--allow-discards")
-                ]) + ''
-                  ${sw.device} ${sw.deviceName}
+                  ${concatStringsSep " \\\n" (flatten [
+                    (optional (sw.randomEncryption.sectorSize != null) "--sector-size=${toString sw.randomEncryption.sectorSize}")
+                    (optional (sw.randomEncryption.keySize != null) "--key-size=${toString sw.randomEncryption.keySize}")
+                    (optional sw.randomEncryption.allowDiscards "--allow-discards")
+                  ])} ${sw.device} ${sw.deviceName}
                   mkswap ${sw.realDevice}
                 ''}
               '';

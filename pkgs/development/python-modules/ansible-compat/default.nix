@@ -13,14 +13,14 @@
 
 buildPythonPackage rec {
   pname = "ansible-compat";
-  version = "4.0.4";
+  version = "4.1.11";
   format = "pyproject";
 
   disabled = pythonOlder "3.7";
 
   src = fetchPypi {
     inherit pname version;
-    hash = "sha256-rXzr++4EVt+/7g6AJRWxEeABYCVSUFF0+jo1/wi6Izk=";
+    hash = "sha256-s+n518OhzmIi3kROncb+zn66cKxk8qC+/cTi1UIBi0o=";
   };
 
   nativeBuildInputs = [

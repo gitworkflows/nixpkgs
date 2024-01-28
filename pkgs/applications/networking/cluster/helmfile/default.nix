@@ -1,17 +1,23 @@
-{ lib, buildGoModule, fetchFromGitHub, installShellFiles }:
+{ lib
+, buildGoModule
+, fetchFromGitHub
+, installShellFiles
+, makeWrapper
+, pluginsDir ? null
+}:
 
 buildGoModule rec {
   pname = "helmfile";
-  version = "0.153.1";
+  version = "0.161.0";
 
   src = fetchFromGitHub {
     owner = "helmfile";
     repo = "helmfile";
     rev = "v${version}";
-    sha256 = "sha256-XdRA2lFkO98llH1A5GW5wgFsggvO5ZBbNXYZR9eoHgM=";
+    sha256 = "sha256-SoXpUAISYgB0qrw0urnVjPFfBc4jtkfDl41MmzfRG/g=";
   };
 
-  vendorHash = "sha256-gm/fVtmcmVHyJnzODwfgJeCaFKk2iLjTpLKtdABqdCE=";
+  vendorHash = "sha256-piGbC9cljBjJ0X2kzNqNnpFmcjnu6DdKizSRGrw/+2c=";
 
   doCheck = false;
 
@@ -19,9 +25,14 @@ buildGoModule rec {
 
   ldflags = [ "-s" "-w" "-X go.szostok.io/version.version=v${version}" ];
 
-  nativeBuildInputs = [ installShellFiles ];
+  nativeBuildInputs =
+    [ installShellFiles ] ++
+    lib.optional (pluginsDir != null) makeWrapper;
 
-  postInstall = ''
+  postInstall = lib.optionalString (pluginsDir != null) ''
+    wrapProgram $out/bin/helmfile \
+      --set HELM_PLUGINS "${pluginsDir}"
+  '' + ''
     installShellCompletion --cmd helmfile \
       --bash <($out/bin/helmfile completion bash) \
       --fish <($out/bin/helmfile completion fish) \
@@ -37,6 +48,5 @@ buildGoModule rec {
     homepage = "https://helmfile.readthedocs.io/";
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ pneumaticat yurrriq ];
-    platforms = lib.platforms.unix;
   };
 }

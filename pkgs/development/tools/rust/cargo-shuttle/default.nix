@@ -1,10 +1,7 @@
 { lib
 , rustPlatform
 , fetchFromGitHub
-, fetchpatch
 , pkg-config
-, curl
-, libgit2_1_5
 , openssl
 , zlib
 , stdenv
@@ -12,14 +9,14 @@
 }:
 
 rustPlatform.buildRustPackage rec {
-  pname = "shuttle";
-  version = "0.16.0";
+  pname = "cargo-shuttle";
+  version = "0.34.1";
 
   src = fetchFromGitHub {
     owner = "shuttle-hq";
     repo = "shuttle";
     rev = "v${version}";
-    hash = "sha256-lDRT3M6LfQrts9X2erRVyqTFWVqOwWQ/JFB1ZlK6Lo8=";
+    hash = "sha256-SAad1GS092a9LBzlnf1UMLGwKsNBOgWP0gjoW2M0SH4=";
   };
 
   cargoLock = {
@@ -30,25 +27,11 @@ rustPlatform.buildRustPackage rec {
     };
   };
 
-  patches = [
-    # make sure to have only one revision of hyper-reverse-proxy
-    # necessary to make `importCargoLock` work
-    # https://github.com/shuttle-hq/shuttle/pull/921
-    (fetchpatch {
-      name = "chore-promote-hyper-reverse-proxy-to-a-workspace-dependency.patch";
-      url = "https://github.com/shuttle-hq/shuttle/commit/5c398427229f1358bd26ec81a2a22d01adf11b3d.patch";
-      hash = "sha256-fJBz/0StMALtJYh/Ec/KGCwCGLtch+HH/oYlibE8xcw=";
-    })
-  ];
-
   nativeBuildInputs = [
-    curl
     pkg-config
   ];
 
   buildInputs = [
-    curl
-    libgit2_1_5
     openssl
     zlib
   ] ++ lib.optionals stdenv.isDarwin [

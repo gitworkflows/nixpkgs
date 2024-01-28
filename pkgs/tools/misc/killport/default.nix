@@ -1,25 +1,26 @@
 { lib
 , rustPlatform
 , fetchCrate
-, llvmPackages
 }:
+
 rustPlatform.buildRustPackage rec {
   pname = "killport";
-  version = "0.8.0";
+  version = "0.9.2";
 
   src = fetchCrate {
     inherit pname version;
-    hash = "sha256-ip7Ndy4i4P6n20COfSL/EtG1Y+xoab8Gox4gcNHH1/o=";
+    hash = "sha256-eyRI4ZVp9HPMvpzyV9sQdh2r966pCdyUPnEhxGkzH3Q=";
   };
 
-  cargoSha256 = "sha256-M4riyvGueCQDKOj+lgYPm2lZ8UjCp1y/SyG692vZbS4=";
+  cargoHash = "sha256-QQ43dT9BTu7qCzpnTGKzlVL6jKDXofXStYWYNLHSuVs=";
 
-  LIBCLANG_PATH = "${llvmPackages.libclang.lib}/lib";
+  nativeBuildInputs = [ rustPlatform.bindgenHook ];
 
   meta = with lib; {
     description = "A command-line tool to easily kill processes running on a specified port";
     homepage = "https://github.com/jkfran/killport";
     license = licenses.mit;
     maintainers = with maintainers; [ sno2wman ];
+    mainProgram = "killport";
   };
 }

@@ -1,16 +1,16 @@
 { lib
-, stdenv
-, fetchFromGitHub
 , rustPlatform
-, openssl
-, libgit2
-, libssh2
-, zlib
+, fetchFromGitHub
 , pkg-config
+, libgit2_1_5
+, openssl
+, zlib
+, stdenv
+, darwin
 }:
 
 let
-  version = "5.12.146";
+  version = "5.12.184";
 in
 rustPlatform.buildRustPackage {
   pname = "git-mit";
@@ -20,20 +20,26 @@ rustPlatform.buildRustPackage {
     owner = "PurpleBooth";
     repo = "git-mit";
     rev = "v${version}";
-    hash = "sha256-VN1TbK9wi5Nt2K3yKx2lYSP30zSpwNETQ4OyHj8zxBg=";
+    hash = "sha256-KFfRfLOl6So9AnmrLiiG3sUG2OHQegb8Nx/ndcO1IjE=";
   };
 
-  cargoHash = "sha256-YtUuRLjmehG+5kUiCo4LK0PkKAckr28UahlrAjm9MYw=";
-
-  doCheck = true;
+  cargoHash = "sha256-17Ojhu7xPZYdFeV/rCa/K9HLHD/vsm0FU6Ag9EPngcQ=";
 
   nativeBuildInputs = [ pkg-config ];
 
-  buildInputs = [ openssl libgit2 libssh2 zlib ];
+  buildInputs = [
+    libgit2_1_5
+    openssl
+    zlib
+  ] ++ lib.optionals stdenv.isDarwin [
+    darwin.apple_sdk.frameworks.AppKit
+  ];
 
-  meta = {
+  meta = with lib; {
     description = "Minimalist set of hooks to aid pairing and link commits to issues";
     homepage = "https://github.com/PurpleBooth/git-mit";
-    license = lib.licenses.cc0;
+    changelog = "https://github.com/PurpleBooth/git-mit/releases/tag/v${version}";
+    license = licenses.cc0;
+    maintainers = with maintainers; [ figsoda ];
   };
 }

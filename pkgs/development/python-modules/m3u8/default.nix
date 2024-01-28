@@ -4,17 +4,21 @@
 , iso8601
 , bottle
 , pytestCheckHook
+, pythonOlder
 }:
 
 buildPythonPackage rec {
   pname = "m3u8";
-  version = "3.4.0";
+  version = "3.6.0";
+  format = "setuptools";
+
+  disabled = pythonOlder "3.7";
 
   src = fetchFromGitHub {
     owner = "globocom";
     repo = pname;
-    rev = version;
-    hash = "sha256-jfCmvAb7bF6nYFNUPXVG61x0RiO4vcyR+x7WzgPRLxI=";
+    rev = "refs/tags/${version}";
+    hash = "sha256-JLYRkibcvmNct2eIBfBP7z3gR680xhZL/Kn/1S7feoo=";
   };
 
   propagatedBuildInputs = [
@@ -38,8 +42,9 @@ buildPythonPackage rec {
   ];
 
   meta = with lib; {
-    homepage = "https://github.com/globocom/m3u8";
     description = "Python m3u8 parser";
+    homepage = "https://github.com/globocom/m3u8";
+    changelog = "https://github.com/globocom/m3u8/releases/tag//${version}";
     license = licenses.mit;
     maintainers = with maintainers; [ Scriptkiddi ];
   };

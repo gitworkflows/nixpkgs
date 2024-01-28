@@ -4,7 +4,7 @@
 }:
 let
   pname = "ln-boot";
-  version = "unstable-2023-05-01";
+  version = "unstable-2023-05-22";
 
   src = ./ln.c;
 in
@@ -14,7 +14,7 @@ kaem.runCommand "${pname}-${version}" {
   meta = with lib; {
     description = "Basic tool for creating symbolic links";
     license = licenses.mit;
-    maintainers = with maintainers; [ emilytrau ];
+    maintainers = teams.minimal-bootstrap.members;
     mainProgram = "ln";
     platforms = platforms.unix;
   };

@@ -9,16 +9,16 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "miniserve";
-  version = "0.23.2";
+  version = "0.25.0";
 
   src = fetchFromGitHub {
     owner = "svenstaro";
     repo = "miniserve";
     rev = "v${version}";
-    hash = "sha256-nHcJw5RwvXoBQRS/AtUqCuoFRc9FnYtehkMSWn7GiKI=";
+    hash = "sha256-b+hh3pAP1ijcLi3aME6dzwkbXo8lTBm5xyijKhquy8g=";
   };
 
-  cargoHash = "sha256-97eNe+gmRXhmfw+pkHAfG8TTxOgBZOPPuXeKT0fWGr4=";
+  cargoHash = "sha256-Z1JqVs9Q18x0+BNtrZNAJVRMeOrluk96KUrI36WogMk=";
 
   nativeBuildInputs = [
     installShellFiles
@@ -26,6 +26,7 @@ rustPlatform.buildRustPackage rec {
 
   buildInputs = lib.optionals stdenv.isDarwin [
     darwin.apple_sdk.frameworks.Security
+    darwin.apple_sdk.frameworks.SystemConfiguration
   ];
 
   nativeCheckInputs = [
@@ -56,5 +57,6 @@ rustPlatform.buildRustPackage rec {
     changelog = "https://github.com/svenstaro/miniserve/blob/v${version}/CHANGELOG.md";
     license = with licenses; [ mit ];
     maintainers = with maintainers; [ figsoda ];
+    mainProgram = "miniserve";
   };
 }

@@ -14,14 +14,14 @@
 
 stdenv.mkDerivation rec {
   pname = "abuild";
-  version = "3.11.0";
+  version = "3.12.0";
 
   src = fetchFromGitLab {
     domain = "gitlab.alpinelinux.org";
     owner = "alpine";
     repo = pname;
     rev = version;
-    sha256 = "sha256-8vQZgSsOGdO03thK+aKItGEMAJxcEYuH1BVDqmOEyak=";
+    sha256 = "sha256-p4TohsZZTi4HxtJsyuoE5HDfkGa0pv53saGj3X9bmrI=";
   };
 
   buildInputs = [

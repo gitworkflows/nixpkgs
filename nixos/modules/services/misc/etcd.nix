@@ -15,6 +15,8 @@ in {
       type = types.bool;
     };
 
+    package = mkPackageOption pkgs "etcd" { };
+
     name = mkOption {
       description = lib.mdDoc "Etcd unique node name.";
       default = config.networking.hostName;
@@ -150,9 +152,10 @@ in {
   };
 
   config = mkIf cfg.enable {
-    systemd.tmpfiles.rules = [
-      "d '${cfg.dataDir}' 0700 etcd - - -"
-    ];
+    systemd.tmpfiles.settings."10-etcd".${cfg.dataDir}.d = {
+      user = "etcd";
+      mode = "0700";
+    };
 
     systemd.services.etcd = {
       description = "etcd key-value store";
@@ -187,13 +190,13 @@ in {
 
       serviceConfig = {
         Type = "notify";
-        ExecStart = "${pkgs.etcd}/bin/etcd";
+        ExecStart = "${cfg.package}/bin/etcd";
         User = "etcd";
         LimitNOFILE = 40000;
       };
     };
 
-    environment.systemPackages = [ pkgs.etcd ];
+    environment.systemPackages = [ cfg.package ];
 
     users.users.etcd = {
       isSystemUser = true;
